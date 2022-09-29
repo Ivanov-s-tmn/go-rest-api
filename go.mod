@@ -1,4 +1,4 @@
-module github.com/ivanov-s-tmn/rest-api
+module github.com/ivanov-s-tmn/go-rest-api
 
 go 1.19
 
