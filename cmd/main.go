@@ -2,11 +2,13 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/ivanov-s-tmn/go-rest-api"
 	"github.com/ivanov-s-tmn/go-rest-api/pkg/handlers"
 	"github.com/ivanov-s-tmn/go-rest-api/pkg/repository"
 	"github.com/ivanov-s-tmn/go-rest-api/pkg/service"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
 )
@@ -16,13 +18,17 @@ func main() {
 		log.Fatalf("error initializing configs: %s", err.Error())
 	}
 
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Error reading env variables: %s", err.Error())
+	}
+
 	db, err := repository.NewPostgresDB(repository.Config{
-		Host:     "localhost",
-		Port:     "5433",
-		Username: "postgres",
-		Password: "qwerty",
-		DBName:   "postgres",
-		SSLMode:  "disable",
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
+		Username: viper.GetString("db.username"),
+		Password: os.Getenv("DB_PASSWORD"),
+		DBName:   viper.GetString("db.dbname"),
+		SSLMode:  viper.GetString("db.sslmode"),
 	})
 
 	if err != nil {
