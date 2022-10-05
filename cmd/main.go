@@ -1,7 +1,10 @@
 package main
 
 import (
+	"context"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/ivanov-s-tmn/go-rest-api"
 	"github.com/ivanov-s-tmn/go-rest-api/pkg/handlers"
@@ -42,8 +45,26 @@ func main() {
 	handlers := handlers.NewHandler(srvc)
 
 	server := new(rest.Server)
-	if err := server.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
-		logrus.Fatalf("Error while running server: %s", err.Error())
+	go func() {
+		if err := server.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
+			logrus.Fatalf("Error while running server: %s", err.Error())
+		}
+	}()
+
+	logrus.Print("TodoApp started")
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
+
+	logrus.Print("TodoApp Shutting Down")
+
+	if err := server.Shutdown(context.Background()); err != nil {
+		logrus.Fatalf("Error while shutting down server: %s", err.Error())
+	}
+
+	if err := db.Close(); err != nil {
+		logrus.Fatalf("Error while closing db connection: %s", err.Error())
 	}
 }
 
